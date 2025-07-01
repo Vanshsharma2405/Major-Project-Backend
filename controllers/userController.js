@@ -296,4 +296,123 @@ const forgotPassword = async(req, res) => {
     }
 }
 
-export{loginUser, registerUser, adminLogin, googleLogin, forgotPassword}
+// Route for updating profile picture
+const updateProfilePicture = async(req, res) => {
+    try {
+        const { profilePicture } = req.body;
+        const userId = req.user._id;
+
+        if (!profilePicture) {
+            return res.status(400).json({
+                success: false,
+                message: "Profile picture data is required"
+            });
+        }
+
+        // Update user's profile picture
+        const updatedUser = await userModel.findByIdAndUpdate(
+            userId,
+            { profilePicture },
+            { new: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Profile picture updated successfully",
+            user: {
+                id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                profilePicture: updatedUser.profilePicture
+            }
+        });
+
+    } catch (error) {
+        console.error("Update profile picture error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+}
+
+// Route for removing profile picture
+const removeProfilePicture = async(req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Remove user's profile picture
+        const updatedUser = await userModel.findByIdAndUpdate(
+            userId,
+            { profilePicture: '' },
+            { new: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Profile picture removed successfully",
+            user: {
+                id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                profilePicture: updatedUser.profilePicture
+            }
+        });
+
+    } catch (error) {
+        console.error("Remove profile picture error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+}
+
+// Route for getting user profile
+const getUserProfile = async(req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const user = await userModel.findById(userId).select('-password');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                profilePicture: user.profilePicture
+            }
+        });
+
+    } catch (error) {
+        console.error("Get user profile error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+}
+
+export{loginUser, registerUser, adminLogin, googleLogin, forgotPassword, updateProfilePicture, removeProfilePicture, getUserProfile}
